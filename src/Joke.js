@@ -28,8 +28,12 @@ import "./Joke.css";
 // }
 
 function Joke({ id, vote, votes, text }) {
-  function upVote(evt) { vote(id + 1) }
-  function downVote(evt) { vote(id - 1) }
+  function upVote(evt) {
+    vote(id, 1)
+  }
+  function downVote(evt) {
+    vote(id, -1)
+  }
 
   return (
     <div className="Joke">

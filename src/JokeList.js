@@ -5,12 +5,14 @@ import "./JokeList.css";
 
 /** List of jokes. */
 
-function JokeList(numJokesToGet = 5) {
+function JokeList({ numJokesToGet = 5 }) {
   const [jokes, setJokes] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const getJokes = useCallback(async () => {
-    let j = [...jokes]; // why make new array?
+  /* get jokes if there are no jokes */
+
+  async function getJokes() {
+    let j = [...jokes];
     let seenJokes = new Set();
     try {
       while (j.length < numJokesToGet) {
@@ -26,45 +28,20 @@ function JokeList(numJokesToGet = 5) {
           console.error("duplicate found!");
         }
       }
+
       setJokes(j);
-      setIsLoading(false)
+      setIsLoading(false);
     } catch (err) {
       console.error(err);
     }
-  }, [jokes, numJokesToGet]);
-
-  /* get jokes if there are no jokes */
+  }
 
   useEffect(function () {
-    // async function getJokes() {
-    //   let j = [...jokes]; // why make new array?
-    //   let seenJokes = new Set();
-    //   try {
-    //     while (j.length < numJokesToGet) {
-    //       let res = await axios.get("https://icanhazdadjoke.com", {
-    //         headers: { Accept: "application/json" }
-    //       });
-    //       let { ...jokeObj } = res.data;
+    if (jokes.length === 0) {
+      getJokes();
+    }
 
-    //       if (!seenJokes.has(jokeObj.id)) {
-    //         seenJokes.add(jokeObj.id);
-    //         j.push({ ...jokeObj, votes: 0 });
-    //       } else {
-    //         console.error("duplicate found!");
-    //       }
-    //     }
-
-    //     setJokes(j);
-    //     setIsLoading(false)
-    //   } catch (err) {
-    //     console.error(err);
-    //   }
-    // }
-
-    // if (jokes.length === 0) {
-    getJokes();
-    // }
-  }, [getJokes]);
+  }, [numJokesToGet, jokes]);
 
   /* empty joke list, set to loading state, and then call getJokes */
 
