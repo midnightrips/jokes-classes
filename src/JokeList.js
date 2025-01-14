@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import Joke from "./Joke";
 import "./JokeList.css";
@@ -9,36 +9,62 @@ function JokeList(numJokesToGet = 5) {
   const [jokes, setJokes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const getJokes = useCallback(async () => {
+    let j = [...jokes]; // why make new array?
+    let seenJokes = new Set();
+    try {
+      while (j.length < numJokesToGet) {
+        let res = await axios.get("https://icanhazdadjoke.com", {
+          headers: { Accept: "application/json" }
+        });
+        let { ...jokeObj } = res.data;
+
+        if (!seenJokes.has(jokeObj.id)) {
+          seenJokes.add(jokeObj.id);
+          j.push({ ...jokeObj, votes: 0 });
+        } else {
+          console.error("duplicate found!");
+        }
+      }
+      setJokes(j);
+      setIsLoading(false)
+    } catch (err) {
+      console.error(err);
+    }
+  }, [jokes, numJokesToGet]);
+
   /* get jokes if there are no jokes */
 
   useEffect(function () {
-    async function getJokes() {
-      let j = [...jokes];
-      let seenJokes = new Set();
-      try {
-        while (j.length < numJokesToGet) {
-          let res = await axios.get("https://icanhazdadjoke.com", {
-            headers: { Accept: "application/json" }
-          });
-          let { ...jokeObj } = res.data;
+    // async function getJokes() {
+    //   let j = [...jokes]; // why make new array?
+    //   let seenJokes = new Set();
+    //   try {
+    //     while (j.length < numJokesToGet) {
+    //       let res = await axios.get("https://icanhazdadjoke.com", {
+    //         headers: { Accept: "application/json" }
+    //       });
+    //       let { ...jokeObj } = res.data;
 
-          if (!seenJokes.has(jokeObj.id)) {
-            seenJokes.add(jokeObj.id);
-            j.push({ ...jokeObj, votes: 0 });
-          } else {
-            console.error("duplicate found!");
-          }
-        }
+    //       if (!seenJokes.has(jokeObj.id)) {
+    //         seenJokes.add(jokeObj.id);
+    //         j.push({ ...jokeObj, votes: 0 });
+    //       } else {
+    //         console.error("duplicate found!");
+    //       }
+    //     }
 
-        setJokes(j);
-        setIsLoading(false)
-      } catch (err) {
-        console.error(err);
-      }
-    }
+    //     setJokes(j);
+    //     setIsLoading(false)
+    //   } catch (err) {
+    //     console.error(err);
+    //   }
+    // }
 
-    if (jokes.length === 0) getJokes();
-  }, [jokes, numJokesToGet]);
+    // if (jokes.length === 0) {
+    getJokes();
+    // }
+  }, [getJokes]);
 
   /* empty joke list, set to loading state, and then call getJokes */
 
